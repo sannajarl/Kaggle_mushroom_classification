@@ -190,6 +190,7 @@ if __name__ == "__main__":
     
     model = Mushroom_Network(input_size, hidden1_size, hidden2_size, hidden3_size, nr_classes)
     
+    # Train network
     trainset, valset, testset, [[x_train], [y_train]] = preprocess(data)
     training_loader = DataLoader(trainset, batch_size=32, shuffle=True)
     validation_loader = DataLoader(valset, batch_size=32, shuffle=True)
@@ -197,3 +198,8 @@ if __name__ == "__main__":
     optimizer = optim.Adam(model.parameters(), lr=0.001)
     train_loss, val_loss = train_model(model, nEpochs, trainset, training_loader, valset, validation_loader, loss_fn, optimizer)
     plot_losses(train_loss, val_loss)
+    
+    # Test
+    test_loader = DataLoader(testset, batch_size=32, shuffle=True)
+    test_acc, test_loss, _ = evaluate_model(test_loader, testset, model, loss_fn)
+    print('Test accuracy: ', test_acc)
