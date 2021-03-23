@@ -35,10 +35,11 @@ import torch.optim as optim
 from  torch.utils.data import DataLoader
 from sklearn.model_selection import train_test_split
 from torch.utils.data import TensorDataset
-import numpy as np
-import os
-from sklearn import metrics
-from sklearn.preprocessing import normalize
+import matplotlib.pyplot as plt
+# import numpy as np
+# import os
+# from sklearn import metrics
+# from sklearn.preprocessing import normalize
 from sklearn import preprocessing
 
 class Mushroom_Network(nn.Module):
@@ -131,7 +132,7 @@ def evaluate_model(val_data_loader, valset, model, loss_fn):
     return val_accuracy, val_avg_loss, prob
 
 def train_model(model, nEpochs, trainset, training_loader, valset, validation_loader, loss_fn, optimizer):
-    # n = nEpochs.astype('float32')
+    train_loss, val_loss = [], []
     for epoch in range(nEpochs):
         losses = []
         n_correct = 0
@@ -163,6 +164,19 @@ def train_model(model, nEpochs, trainset, training_loader, valset, validation_lo
         display_str += '\tAccuracy: {:.2f} '
         display_str += '\tAccuracy (val): {:.2f}'
         print(display_str.format(epoch, train_avg_loss, val_avg_loss, train_accuracy, val_accuracy))
+        train_loss.append(train_avg_loss)
+        val_loss.append(val_avg_loss)
+    return train_loss, val_loss
+
+def plot_losses(train_loss, val_loss):
+    epochs = len(train_loss)
+    plt.plot(range(epochs), train_loss)
+    plt.plot(range(epochs), val_loss)
+    plt.xlabel('Epochs')
+    plt.ylabel('Loss')
+    plt.legend(["training", "Validation"], loc = "upper right")
+    plt.title('Loss curves')
+    plt.show()
 
 if __name__ == "__main__":
     data = pd.read_csv(r'C:\Users\sjarl\Documents\kaggle_mushrooms\mushrooms.csv')
@@ -172,8 +186,7 @@ if __name__ == "__main__":
     hidden2_size = 20
     hidden3_size = 30
     nr_classes = 2 
-    nEpochs = 10
-    # nr_alleles = [6, 4, 10, 2, 9, 3, 3, 2, 12, 2, 7, 4, 4, 9, 9, 2, 4, 3, 8, 9, 6, 7]
+    nEpochs = 50
     
     model = Mushroom_Network(input_size, hidden1_size, hidden2_size, hidden3_size, nr_classes)
     
@@ -182,4 +195,5 @@ if __name__ == "__main__":
     validation_loader = DataLoader(valset, batch_size=32, shuffle=True)
     loss_fn = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=0.001)
-    train_model(model, nEpochs, trainset, training_loader, valset, validation_loader, loss_fn, optimizer)
+    train_loss, val_loss = train_model(model, nEpochs, trainset, training_loader, valset, validation_loader, loss_fn, optimizer)
+    plot_losses(train_loss, val_loss)
