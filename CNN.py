@@ -55,7 +55,12 @@ def load_data(data_folder):
             mushroom_img = np.array(Image.open(img).convert('RGB'))
             mushroom_img = mushroom_img.astype('float32')
             mushroom_rgb.append(mushroom_img)
-    return mushroom_rgb, labels
+    x_train, x_test, y_train, y_test = train_test_split(mushroom_rgb, labels, test_size=0.85)
+    x_train, x_val, y_train, y_val = train_test_split(x_train, y_train, test_size=0.8)
+    trainset = create_dataset(x_train, y_train)
+    valset = create_dataset(x_val, y_val)
+    testset = create_dataset(x_test, y_test)
+    return trainset, valset, testset
 
 def create_dataset(x, y):
     torch_x = torch.tensor(x)
@@ -109,8 +114,8 @@ def train_model(model, nEpochs, trainset, training_loader, loss_fn, optimizer):
         
     
 if __name__ == "__main__":
-    data_folder = 'C://Users/sjarl/Documents/kaggle_mushrooms/Mushrooms/'
+    data_folder = '/chalmers/users/sannaja/Documents/Kaggle_mushroom_classification/Mushrooms/'
     images, labels = load_data(data_folder)
     model = CNN()
-    x_train, x_test, y_train, y_test = train_test_split(dataset, labels, test_size=0.85)
+    trainset, valset, testset = load_data(data_folder)
     
