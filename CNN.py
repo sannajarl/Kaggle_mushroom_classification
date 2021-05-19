@@ -18,6 +18,7 @@ import os
 from sklearn import metrics
 from PIL import Image
 from PIL import ImageFile
+from torchvision import transforms
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 class CNN(nn.Module):
@@ -47,6 +48,11 @@ def load_data(data_folder):
     labels = []
     label_val = 0
     mushroom_folders = [os.path.join(data_folder, o) for o in os.listdir(data_folder)]
+    transform = transforms.Compose([
+        transforms.Resize(128),
+        transforms.CenterCrop(128),
+        transforms.ToTensor()
+    ])
     for folder in mushroom_folders:
         imgs_path = [os.path.join(folder + '/', s) for s in os.listdir(folder)] # inne i varje svampmapp
         labels = labels + [label_val]*len(imgs_path)
@@ -54,13 +60,17 @@ def load_data(data_folder):
         for img in imgs_path:
             mushroom_img = np.array(Image.open(img).convert('RGB'))
             mushroom_img = mushroom_img.astype('float32')
+            # Crop(mushroom_img)
             mushroom_rgb.append(mushroom_img)
     x_train, x_test, y_train, y_test = train_test_split(mushroom_rgb, labels, test_size=0.85)
     x_train, x_val, y_train, y_val = train_test_split(x_train, y_train, test_size=0.8)
     trainset = create_dataset(x_train, y_train)
     valset = create_dataset(x_val, y_val)
     testset = create_dataset(x_test, y_test)
-    return trainset, valset, testset
+    training_loader = DataLoader(trainset, batch_size=16, shuffle=True)
+    validation_loader = DataLoader(valset, batch_size=16, shuffle=True)
+    test_loader = DataLoader(testset, batch_size=16, shuffle=True)
+    return training_loader, validation_loader, test_loader
 
 def create_dataset(x, y):
     torch_x = torch.tensor(x)
@@ -68,6 +78,11 @@ def create_dataset(x, y):
     t_dataset = TensorDataset(torch_x, torch_y)
     return t_dataset
     
+# def Crop(image):
+#     crop_transf = CenterCrop(256)
+#     image_cropped = crop_transf(image)
+#     return image_cropped
+
 def evaluate_model(val_data_loader, valset, model, loss_fn):
     losses = []
     prob = torch.tensor([])
@@ -114,7 +129,9 @@ def train_model(model, nEpochs, trainset, training_loader, loss_fn, optimizer):
         
     
 if __name__ == "__main__":
-    data_folder = '/chalmers/users/sannaja/Documents/Kaggle_mushroom_classification/Mushrooms/'
+    data_folder = 'C:/Users/sjarl/Documents/kaggle_mushrooms/Kaggle_mushroom_classification/Mushrooms/'
+    # data_folder = '/chalmers/users/sannaja/Documents/Kaggle_mushroom_classification/Mushrooms/'
+    data_folder
     images, labels = load_data(data_folder)
     model = CNN()
     trainset, valset, testset = load_data(data_folder)
